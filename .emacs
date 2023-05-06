@@ -13,10 +13,11 @@
  ;; If there is more than one, they won't work right.
  )
 (add-to-list 'image-types 'svg)
-(setq-default line-spacing .10)
+(setq-default line-spacing 0)
 
 ;; Performance tweaking for modern machines
 (setq gc-cons-threshold 100000000)
+;; Increase the amount of data which Emacs reads from the process
 (setq read-processd-output-max (* 1024 1024))
 
 ;; Hide UI
@@ -40,6 +41,7 @@
 ;; font, themes, oh my
 (set-frame-font "JetBrains Mono 13" nil t)
 (load-theme 'dracula' t)
+(setq warning-minimum-level :error)
 
 
 ;; Not using package.el, use straight
@@ -94,8 +96,6 @@
 
 (use-package orderless
   :straight t
-  ;; :init
-  ;; (icomplete-vertical-mode)
   :custom
   (completion-styles '(orderless basic))
   (completion-category-defaults nil)
@@ -104,7 +104,7 @@
                                  )
   (read-buffer-completion-ignore-case t)
   (read-file-name-completion-ignore-case t)
-)
+  )
 
 ;; Save minibuffer results
 (use-package savehist
@@ -119,38 +119,53 @@
 ;;   :after magit)
 
 ;; LSP support
-(use-package eglot
+;; (use-package eglot
+;;   :straight t
+;;   :init
+;;   (add-hook 'ruby-mode-hook 'eglot-ensure)
+;;   (add-hook 'web-mode-hook 'eglot-ensure)
+;;   (add-hook 'sql-mode-hook 'eglot-ensure)
+;;   (with-eval-after-load 'eglot
+;;     (add-to-list 'eglot-server-programs
+;;                  '(web-mode . ("typescript-language-server" "--stdio"))
+;;                  (add-to-list 'eglot-server-programs
+;;                               '(sql-mode . ("sql-language-server" "up" "--method" "stdio"))
+;;                               ))
+;;     ;; We want rubocop to run via ruby-mode; make eglot stay out
+;;     ;; of flymake so ruby-mode can report rubcoop offenses
+;;     (add-to-list 'eglot-stay-out-of 'flymake)
+;;     (add-hook 'eglot--managed-mode-hook (lambda ()
+;;                                           (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
+;;                                           ))
+;;     ;; ensure to start flymake-mode
+;;     ;; (add-hook 'web-mode-hook 'flymake-mode)
+;;     (add-hook 'ruby-mode-hook 'flymake-mode)
+;;     )
+;;   :bind
+;;   (("s-." . eglot-code-actions))
+;;  )
+
+(use-package lsp-mode
   :straight t
   :init
-  (add-hook 'ruby-mode-hook 'eglot-ensure)
-  (add-hook 'web-mode-hook 'eglot-ensure)
-  (add-hook 'sql-mode-hook 'eglot-ensure)
-  (with-eval-after-load 'eglot
-    (add-to-list 'eglot-server-programs
-                 '(web-mode . ("typescript-language-server" "--stdio"))
-                 (add-to-list 'eglot-server-programs
-                              '(sql-mode . ("sql-language-server" "up" "--method" "stdio"))
-                              ))
-    ;; We want rubocop to run via ruby-mode; make eglot stay out
-    ;; of flymake so ruby-mode can report rubcoop offenses
-    (add-to-list 'eglot-stay-out-of 'flymake)
-    (add-hook 'eglot--managed-mode-hook (lambda ()
-                                          (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
-                                          ))
-    ;; ensure to start flymake-mode
-    (add-hook 'web-mode-hook 'flymake-mode)
-    (add-hook 'ruby-mode-hook 'flymake-mode)
-    (add-hook 'lsp-mode 'flymake-mode)
-    )
+  (add-hook 'ruby-mode-hook 'lsp)
+  (add-hook 'web-mode-hook 'lsp)
   :bind
-  (("s-." . eglot-code-actions))
- )
+  (("s-." . lsp-execute-code-action))
+  :config
+  ;; (setq lsp-solargraph-server-command ("cd" "backend" "&&" "./solargraph" "stdio"))
+  (setq lsp-solargraph-use-bundler t)
+
+)
+;; (put 'lsp-solargraph-server-command 'safe-local-variable (lambda (_) t))
+
 
 ;; TODO: enable once PR is merged
 ;; (use-package emacs-format-all-the-code
 ;; :straight t
 ;; :init
-(add-hook 'prog-mode-hook 'format-all-mode)
+;; (add-hook 'prog-mode-hook 'format-all-mode)
+(add-hook 'ruby-mode-hook 'format-all-mode)
 ;; )
 
 (use-package eslint-fix
@@ -169,45 +184,44 @@
   :straight t)
 
 ;; use company everywhere
-;; (use-package company
-;;   :straight t
-;;   :init
-;;   (add-hook 'after-init-hook 'global-company-mode)
-;;   (setq company-minimum-prefix-length 1
-;;         company-idle-delay 0.0)
-;;   :bind ( 
-;;    ("C-c C-c" . company-complete)
-;;    ("M-<tab>" . company-complete)
-;;    )
-;; )
+(use-package company
+  :straight t
+  :init
+  (add-hook 'after-init-hook 'global-company-mode)
+  (setq company-minimum-prefix-length 1
+        company-idle-delay 0.0)
+  :bind (
+         ("C-c C-c" . company-complete)
+         ("M-<tab>" . company-complete)
+         )
+  )
 
 ;; completion with corfu M-TAB
-(use-package corfu
-  :straight t
-  ;; Optional customizations
-  :custom
-  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-  (corfu-auto t)                 ;; Enable auto completion
-  (corfu-separator ?\s)          ;; Orderless field separator
-  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
-  (corfu-auto-delay 0)
-  (corfu-auto-prefix 0)
-  (completion-styles '(basic))
-  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
-  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
-  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
-  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
-  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+;; (use-package corfu
+;;   :straight t
+;;   ;; Optional customizations
+;;   :custom
+;;   ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+;;   (corfu-auto t)                 ;; Enable auto completion
+;;   (corfu-separator ?\s)          ;; Orderless field separator
+;;   ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+;;   (corfu-auto-delay 0)
+;;   (corfu-auto-prefix 0)
+;;   ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+;;   ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+;;   ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+;;   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+;;   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
 
-  ;; Enable Corfu globally.
-  ;; This is recommended since Dabbrev can be used globally (M-/).
-  ;; See also `corfu-exclude-modes'.
-  :init
-  (global-corfu-mode))
+;;   ;; Enable Corfu globally.
+;;   ;; This is recommended since Dabbrev can be used globally (M-/).
+;;   ;; See also `corfu-exclude-modes'.
+;;   :init
+;;   (global-corfu-mode))
 
 ;; svg icons for corfu
-(use-package svg-lib
-  :straight t)
+;; (use-package svg-lib
+;;   :straight t)
 (use-package kind-icon
   :straight (:host github :repo "jdtsmith/kind-icon" :files ("*.el"))
   :after corfu svg-lib
@@ -216,18 +230,21 @@
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
-;; co-pilot TODO: use straigh el
+(use-package store-git-link
+  :straight (:host github :repo "mgmarlow/store-git-link" :files ("*.el"))
+)
+
 (use-package copilot
-  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el")) 
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
   :straight t
   :init
   (add-hook 'prog-mode-hook 'copilot-mode)
-  :bind 
+  :bind
   (:map copilot-completion-map
         ("C-c RET" . copilot-accept-completion)
         ("C-c /" . copilot-accept-completion-by-word)
         )
-   )
+  )
 
 
 ;; Show moar stuff in the minibuffer
@@ -268,7 +285,7 @@
   :straight t
   :config
   (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
-  :init 
+  :init
   (add-hook 'yaml-mode-hook 'flycheck-mode)
   )
 
@@ -282,9 +299,10 @@
   (diff-hl-show-hunk-mouse-mode))
 
 ;; Sticky fn header
-(use-package topsy
-  :straight t
-  :hook (prog-mode . topsy-mode))
+;; lsp-mode is better
+;; (use-package topsy
+;;   :straight t
+;;   :hook (prog-mode . topsy-mode))
 
 (use-package consult
   :straight t
@@ -351,10 +369,36 @@
          ("C-r" . consult-history)
          ))
 
+(use-package consult-lsp
+  :straight t
+  :after (consult lsp-mode)
+)
+
+(use-package flycheck
+  :straight t
+)
+
+
 ;; rspec help
 (use-package rspec-mode
   :straight t
 )
+
+(use-package rainbow-delimiters
+  :straight t
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package highlight-indent-guides
+  :straight t
+  :config
+  (setq highlight-indent-guides-method 'character)
+  (setq highlight-indent-guides-responsive 'top)
+  (setq highlight-indent-guides-auto-enabled nil)
+  (set-face-foreground 'highlight-indent-guides-character-face "grey20")
+  (set-face-foreground 'highlight-indent-guides-top-character-face "purple")
+  :hook 
+  (prog-mode . highlight-indent-guides-mode)
+  )
 
 ;; Custom fns
 (defun highlight-selected-window ()
@@ -384,7 +428,7 @@
   (interactive)
   (let ((current-prefix-arg '(4)))
     (call-interactively #'xref-find-definitions))
-)
+  )
 
 ;; keybindings
 (global-set-key (kbd "s-/") 'comment-line)
