@@ -5,7 +5,7 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    '("fe1c13d75398b1c8fd7fdd1241a55c286b86c3fe4ce513c4292d01383de152cb7" default))
- '(package-selected-packages '(dracula-theme)))
+ )
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -13,7 +13,7 @@
  ;; If there is more than one, they won't work right.
  )
 (add-to-list 'image-types 'svg)
-(setq-default line-spacing 0)
+(setq-default line-spacing 0.0)
 
 ;; Performance tweaking for modern machines
 (setq gc-cons-threshold 100000000)
@@ -33,6 +33,7 @@
 (recentf-mode t)
 (global-auto-revert-mode t)
 (global-display-line-numbers-mode t)
+(global-hl-line-mode t)
 
 ;; (setq display-line-numbers 'relative)
 ;; no audio cues
@@ -40,8 +41,11 @@
 (setq ring-bell-function 'ignore)
 ;; font, themes, oh my
 (set-frame-font "JetBrains Mono 13" nil t)
-(load-theme 'dracula' t)
 (setq warning-minimum-level :error)
+
+;; (setq scroll-conservatively 101) ;; move minimum when cursor exits view, instead of recentering
+;; (setq mouse-wheel-scroll-amount '(1)) ;; mouse scroll moves 1 line at a time, instead of 5 lines
+;; (setq mouse-wheel-progressive-speed nil) ;; on a long mouse scroll keep scrolling by 1 line
 
 
 ;; Not using package.el, use straight
@@ -115,8 +119,6 @@
 ;; magit
 (use-package magit
   :straight t)
-;; (use-package forge
-;;   :after magit)
 
 ;; LSP support
 ;; (use-package eglot
@@ -148,15 +150,22 @@
 (use-package lsp-mode
   :straight t
   :init
-  (add-hook 'ruby-mode-hook 'lsp)
-  (add-hook 'web-mode-hook 'lsp)
+  (add-hook 'ruby-mode-hook 'lsp-deferred)
+  (add-hook 'web-mode-hook 'lsp-deferred)
   :bind
   (("s-." . lsp-execute-code-action))
   :config
-  ;; (setq lsp-solargraph-server-command ("cd" "backend" "&&" "./solargraph" "stdio"))
-  (setq lsp-solargraph-use-bundler t)
+  (setq lsp-eslint-package-manager "yarn")
+  (setq lsp-eslint-working-directories '("frontend/gp/"))
+  )
 
-)
+(defun lsp--eslint-before-save (orig-fun)
+  "Run lsp-eslint-apply-all-fixes and then run the original lsp--before-save."
+  ;;https://github.com/emacs-lsp/lsp-mode/issues/1842
+  (when lsp-eslint-auto-fix-on-save (lsp-eslint-fix-all))
+  (funcall orig-fun))
+(advice-add 'lsp--before-save :around #'lsp--eslint-before-save)
+
 ;; (put 'lsp-solargraph-server-command 'safe-local-variable (lambda (_) t))
 
 
@@ -168,15 +177,10 @@
 (add-hook 'ruby-mode-hook 'format-all-mode)
 ;; )
 
-(use-package eslint-fix
-  :straight t
-  :init
-  (add-hook 'web-mode-hook 'eslint-fix-auto-mode))
-
 (use-package tree-sitter
   :straight t
   :init
-  (add-hook 'after-init-hook 'global-tree-sitter-mode)
+  ;; (add-hook 'after-init-hook 'global-tree-sitter-mode)
   (add-hook 'ruby-mode-hook 'tree-sitter-hl-mode)
   )
 
@@ -222,17 +226,17 @@
 ;; svg icons for corfu
 ;; (use-package svg-lib
 ;;   :straight t)
-(use-package kind-icon
-  :straight (:host github :repo "jdtsmith/kind-icon" :files ("*.el"))
-  :after corfu svg-lib
-  :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+;; (use-package kind-icon
+;;   :straight (:host github :repo "jdtsmith/kind-icon" :files ("*.el"))
+;;   :after corfu svg-lib
+;;   :custom
+;;   (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+;;   :config
+;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package store-git-link
   :straight (:host github :repo "mgmarlow/store-git-link" :files ("*.el"))
-)
+  )
 
 (use-package copilot
   :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
@@ -308,8 +312,8 @@
   :straight t
   :init
   ;; Use Consult to select xref locations with preview
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
+  ;; (setq xref-show-xrefs-function #'consult-xref
+  ;;       xref-show-definitions-function #'consult-xref)
   :bind (
          ("s-i" . consult-imenu)
          ("s-I" . consult-imenu-multi)
@@ -372,17 +376,45 @@
 (use-package consult-lsp
   :straight t
   :after (consult lsp-mode)
-)
+  :bind (
+         ("s-t" . consult-lsp-symbols)
+         )
+  )
+
+(use-package embark
+  :straight t
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :straight t
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package flycheck
   :straight t
-)
-
+  )
 
 ;; rspec help
 (use-package rspec-mode
   :straight t
-)
+  )
 
 (use-package rainbow-delimiters
   :straight t
@@ -392,13 +424,32 @@
   :straight t
   :config
   (setq highlight-indent-guides-method 'character)
-  (setq highlight-indent-guides-responsive 'top)
-  (setq highlight-indent-guides-auto-enabled nil)
-  (set-face-foreground 'highlight-indent-guides-character-face "grey20")
-  (set-face-foreground 'highlight-indent-guides-top-character-face "purple")
-  :hook 
-  (prog-mode . highlight-indent-guides-mode)
+  ;; (setq highlight-indent-guides-responsive 'stack)
+  ;; (setq highlight-indent-guides-auto-enabled nil)
+  (setq highlight-indent-guides-auto-top-character-face-perc 200)
+  ;; (set-face-foreground 'highlight-indent-guides-character-face nil)
+  ;; (set-face-foreground 'highlight-indent-guides-top-character-face "purple")
+  ;; :hook 
+  ;; (prog-mode . highlight-indent-guides-mode)
   )
+
+(use-package doom-themes
+  :straight t
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-dracula t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  ;; (doom-themes-neotree-config)
+  ;; or for treemacs users
+  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  ;; (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 
 ;; Custom fns
 (defun highlight-selected-window ()
@@ -411,7 +462,7 @@
                       ;; (set-face-foreground 'mode-line "#f8f8f2")
                       (set-cursor-color "green")))))
   (buffer-face-set 'default))
-(add-hook 'buffer-list-update-hook 'highlight-selected-window)
+;; (add-hook 'buffer-list-update-hook 'highlight-selected-window)
 
 (defun show-file-name ()
   "Show the full path file name in the minibuffer."
@@ -433,11 +484,11 @@
 ;; keybindings
 (global-set-key (kbd "s-/") 'comment-line)
 (global-set-key (kbd "s-p") 'project-find-file)
-(global-set-key (kbd "s-t") 'prompt-xref-find-definitions)
+;; (global-set-key (kbd "s-t") 'prompt-xref-find-definitions)
 (global-set-key (kbd "s-<left>") 'evil-prev-buffer)
 (global-set-key (kbd "s-}") 'evil-window-next)
 (global-set-key (kbd "s-{") 'evil-window-prev)
 (global-set-key (kbd "s-<right>") 'evil-next-buffer)
 
 ;; Line numbers as relative
-(put 'narrow-to-region 'disabled nil)
+;; (put 'narrow-to-region 'disabled nil)
