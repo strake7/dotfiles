@@ -1,0 +1,9 @@
+# Load this file after .zshrc: `if [ -f ~/.zshrc.personal.after ]; then . ~/.zshrc.personal.after; fi`
+export PATH="$HOME/.config/emacs/bin:$PATH"
+
+ZSH_THEME="amuse" 
+
+alias config='/usr/bin/git --git-dir=$HOME/.cfg/.git --work-tree=$HOME'
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
