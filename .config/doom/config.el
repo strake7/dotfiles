@@ -21,7 +21,7 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-(setq doom-font (font-spec :family "JetBrains Mono" :size 13))
+(setq doom-font (font-spec :family "JetBrains Mono" :size 14))
 ;;  doom-variable-pitch-font (font-spec :family "Fira Sans" :size 12))
 ;;
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
@@ -32,7 +32,7 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-;; (setq doom-theme 'strake-zenburn)
+(setq doom-theme 'doom-dracula)
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -112,12 +112,20 @@
   )
 
 (use-package! lsp-mode
+  ;; activate rvm version before lsp
+  :hook (ruby-mode . (lambda ()
+                       (unless (and(boundp 'rvm--current-ruby) rvm--current-ruby)
+                         (message "Activating rvm version")
+                         (rvm-activate-corresponding-ruby)
+                         )))
   :config
   (advice-add 'lsp--before-save :around #'lsp--eslint-before-save)
   :custom
   (lsp-headerline-breadcrumb-enable t)
   )
 
+
+(setq-hook! 'emacs-lisp-mode lisp-indent-offset 2)
 
 (defun lsp--eslint-before-save (orig-fun)
   "Run lsp-eslint-apply-all-fixes and then run the original lsp--before-save."

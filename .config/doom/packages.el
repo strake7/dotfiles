@@ -50,4 +50,11 @@
 ;; (unpin! t)
 ;;
 (package! copilot
-  :recipe (:host github :repo "zerolfx/copilot.el" :files ("*.el" "dist")))
+  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el" "dist")))
+
+;; required by rspec-mode for rvm support
+(package! rvm.el
+  :recipe (:host github :repo "senny/rvm.el" :files ("*.el")))
+
+(package! vscode-dark-plus-emacs-theme
+  :recipe (:host github :repo "ianyepan/vscode-dark-plus-emacs-theme" :files ("*.el")))
