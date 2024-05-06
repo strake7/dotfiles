@@ -1,19 +1,16 @@
-;;; strake-miramare-theme.el --- Strake's edition of the doom-miramare theme  -*- lexical-binding: t; -*-
+;;; strake-plaskett-theme.el --- A fresh take on miramare (a gruvbox variant), with some inspiration from zenburn and dracula palletes. -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024  Nolan Sedley
-
-;; Author: Nolan Sedley <nsedley@gmail.com>
+;; Added: 2024 Strake
 ;; Keywords: lisp,
-                                        ;
+;;
+;; --- Original Headers Below ---
 ;;;; doom-miramare-theme.el --- a port of Franbach's Miramare theme; a variant of Grubox -*- lexical-binding: t; no-byte-compile: t; -*-
 ;;
 ;; Added: July 11, 2020 (#492)
 ;; Author: sagittaros <https://github.com/sagittaros>
 ;; Maintainer:
 ;; Source: https://github.com/franbach/miramare
-;;
-;;; Commentary:
-;;; Code:
+
 
 (require 'doom-themes)
 
@@ -23,26 +20,25 @@
 ;;
 ;;; Variables
 
-(defgroup strake-miramare-theme nil
-  "Options for strake-miramare."
+(defgroup strake-plaskett-theme nil
+  "Options for strake-plaskett."
   :group 'doom-themes)
 
-(defcustom strake-miramare-brighter-comments nil
+(defcustom strake-plaskett-brighter-comments nil
   "If non-nil, comments will be highlighted in more vivid colors."
-  :group 'strake-miramare-theme
+  :group 'strake-plaskett-theme
   :type 'boolean)
 
-(defcustom strake-miramare-padded-modeline doom-themes-padded-modeline
+(defcustom strake-plaskett-padded-modeline doom-themes-padded-modeline
   "If non-nil, adds a 4px padding to the mode-line. Can be an integer to
 determine the exact padding."
-  :group 'strake-miramare-theme
+  :group 'strake-plaskett-theme
   :type '(choice integer boolean))
-
 
 ;;
 ;;; Theme definition
 
-(def-doom-theme strake-miramare
+(def-doom-theme strake-plaskett
                 "A gruvbox variant with comfortable and pleasant colors."
 
                 ;; name        gui       256       16
@@ -59,39 +55,67 @@ determine the exact padding."
                  (base6      '("#928374" "#909090" "brightblack")) ; gray
                  (base7      '("#d5c4a1" "#cccccc" "brightblack")) ; fg2
                  (base8      '("#fbf1c7" "#fbfbfb" "brightwhite")) ; fg0
-                 (fg         '("#e6d6ac" "#e6d6ac" "brightwhite")) ; fg/fg1
-                 (fg-alt     '("#d8caac" "#d8caac" "brightwhite")) ; fg2
+                 ;; (fg         '("#e6d6ac" "#e6d6ac" "brightwhite")) ; fg/fg1
+                 ;; (fg         '("#ece0c0" "#e6d6ac" "brightwhite")) ; fg/fg1
+                 ;; (fg-alt     '("#d8caac" "#d8caac" "brightwhite")) ; fg2
+                 (fg         '("#DCDCDC" "#bfbfbf" "brightwhite"  )) ;; zenburn-fg
+                 (fg-alt     '("#989890" "#2d2d2d" "white"        )) ;; zenburn-fg-05
+                 ;; (fg         '("#bbc2cf" "#bfbfbf"     "brightwhite"  )) ;; doom-on-fg
+                 ;; (fg-alt     '("#5B6268" "#2d2d2d"     "white"        )) ;; doom-fg-alt
+                 ;; (fg         '("#aeafad" "#bbc2cf"     "brightwhite"  )) ;; vscode-fg
+                 ;; (fg-alt     '("#d4d4d4" "#5B6268"     "white"        )) ;; vscode-alt
 
                  (grey       '("#5b5b5b" "#5b5b5b" "brightblack"))   ; gray
-                 (red        '("#e68183" "#e68183" "red"))           ; bright-red
-                 (magenta    '("#e68183" "#e68183" "magenta"))       ; red
-                 (violet     '("#d3a0bc" "#d3a0bc" "brightmagenta")) ; bright-purple
+                 (red        '("#DFAF8F" "#dd8844" "brightred"))           ; bright-red
+                 ;; (magenta    '("#e68183" "#e68183" "magenta"))       ; red
+                 ;; (magenta    '("#DC8CC3" "#c678dd" "brightmagenta")) ;; zenburn-magenta
+                 (magenta    '("#d3a0bc" "#c678dd" "brightmagenta")) ;; miramare-bright-purple
+                 ;; (violet     '("#d3a0bc" "#d3a0bc" "brightmagenta")) ; miramare-bright-purple
+                 (violet     '("#a9a1e1" "#a9a1e1" "violet"      )) ;; zendurn-??
                  (orange     '("#e39b7b" "#e39b7b" "orange"))        ; bright-orange
-                 (yellow     '("#d9bb80" "#d9bb80" "yellow"))        ; bright-yellow
-                 (teal       '("#87af87" "#87af87" "green"))         ; bright-aqua
-                 (green      '("#87af87" "#87af87" "green"))         ; bright-green
+                 ;; (orange     '("#DFAF8F" "#dd8844" "brightred"    )) ;; zenburn-orange
+                 ;; (yellow     '("#d9bb80" "#d9bb80" "yellow"))     ; bright-yellow
+                 (yellow     '("#F0DFAF" "#ECBE7B" "yellow"       )) ;; zenburn-yellow
+                 ;; (yellow     '("#dcdcaa" "#dcdcaa" "yellow"))        ; vscode yellow
+                 (orange     '("#DFAF8F" "#dd8844" "brightred"    )) ;; zenburn-orange
+                 ;; (teal       '("#87af87" "#87af87" "green"))         ; bright-aqua
+                 (teal       '("#4db5bd" "#44b9b1" "brightgreen"  )) ;; zenburn-??
+                 ;; (light-teal (doom-lighten teal 0.1))
+                 ;; (green      '("#87af87" "#87af87" "green"))         ; bright-green
+                 (green      '("#98be65" "#99bb66" "green"        )) ; doom green
                  (dark-green '("#678f67" "#678f67" "green"))         ; green
                  (blue       '("#89beba" "#89beba" "brightblue"))    ; bright-blue
-                 (dark-blue  '("#458588" "#458588" "blue"))          ; blue
-                 (cyan       '("#87c095" "#87c095" "brightcyan"))    ; bright-aqua
-                 (dark-cyan  '("#67a075" "#67a075" "cyan"))          ; aqua
+                 ;; (blue       '("#8CD0D3" "#51afef" "brightblue"   )) ;; zenburn-blue
+                 ;; (dark-blue  '("#458588" "#458588" "blue"))          ; blue
+                 ;; (dark-blue  '("#2257A0" "#2257A0" "blue"         )) ;; zenburn-??
+                 (dark-blue        '("#83a598" "#83a598" "brightblue"))    ; bright-blue
+                 ;; (dark-blue   '("#458588" "#458588" "blue"))          ; gruvbox-dark-blue
+                 ;; (cyan       '("#87c095" "#87c095" "brightcyan"))    ; bright-aqua
+                 ;; (cyan       '("#9cdcfe" "#9cdcfe" "brightcyan"   )) ;; vscode-blue
+                 ;; (cyan '("#93E0E3" "#46D9FF" "brightcyan"))          ;; zenburn-cyan
+                 (cyan '("#8CD0D3" "#51afef" "brightblue"   )) ;; zenburn-blue
+                 ;; (dark-cyan  '("#67a075" "#67a075" "cyan"))          ; aqua
+                 ;; (dark-cyan-vs  '("#4ec9b0" "#4ec9b0" "cyan"))          ; vscode
+                 ;; (dark-cyan  '("#4dc6ae" "#77ddcc" "cyan"))          ; vscode
+                 (dark-cyan  '("#00d8b4" "#77ddcc" "cyan"))          ; modus
+                 ;; #00d8b4
 
                  ;; face categories
-                 (highlight      yellow)
+                 (highlight      magenta)
                  (vertical-bar   grey)
                  (selection      bg-alt2)
-                 (builtin        orange)
-                 (comments       (if strake-miramare-brighter-comments magenta grey))
-                 (doc-comments   (if strake-miramare-brighter-comments (doom-lighten magenta 0.2) (doom-lighten fg-alt 0.25)))
-                 (constants      violet)
-                 (functions      cyan)
-                 (keywords       red)
-                 (methods        cyan)
-                 (operators      cyan)
-                 (type           yellow)
+                 (builtin        violet)
+                 (comments       (if strake-plaskett-brighter-comments magenta grey))
+                 (doc-comments   (if strake-plaskett-brighter-comments (doom-lighten magenta 0.2) (doom-lighten fg-alt 0.25)))
+                 (constants      cyan)
+                 (functions      magenta)
+                 (keywords       violet)
+                 (methods        magenta)
+                 (operators      yellow)
+                 (type           dark-cyan)
                  (strings        green)
-                 (variables      cyan)
-                 (numbers        violet)
+                 (variables      yellow)
+                 (numbers        red)
                  (region         bg-alt2)
                  (error          red)
                  (warning        yellow)
@@ -103,18 +127,18 @@ determine the exact padding."
 
                  ;; custom categories
                  (-modeline-pad
-                  (when strake-miramare-padded-modeline
-                    (if (integerp strake-miramare-padded-modeline)
-                        strake-miramare-padded-modeline
+                  (when strake-plaskett-padded-modeline
+                    (if (integerp strake-plaskett-padded-modeline)
+                        strake-plaskett-padded-modeline
                       4)))
 
                  (org-quote `(,(doom-lighten (car bg) 0.05) "#1f1f1f")))
 
 
   ;;;; Base theme face overrides
-                ((button :foreground cyan :underline t :bold t)
+                ((button :foreground blue :underline t :bold t)
                  (cursor :background "white")
-                 (font-lock-variable-name-face :foreground cyan :italic t)
+                 (font-lock-variable-name-face :foreground yellow :italic nil :weight 'normal)
                  (hl-line :background bg-alt)
                  (isearch :foreground base0 :background orange)
                  (lazy-highlight
@@ -272,4 +296,4 @@ determine the exact padding."
                 ;; ()
                 )
 
-;;; strake-miramare-theme.el ends here
+;;; strake-plaskett-theme.el ends here
