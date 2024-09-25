@@ -4,6 +4,23 @@ export PATH="$HOME/.config/emacs/bin:$PATH"
 ZSH_THEME="amuse" 
 
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/.git --work-tree=$HOME'
+alias y='yarn'
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+
+# Usage:
+#   - To run all specs 10 times
+#     $: mspec
+#   - To run specific file
+#.    $: mspec packs/summaries/spec/path/to/spec.rb
+function mspec {
+  if [ -z "$1" ]; then
+    echo "Running All Specs"
+    for i in {1..10}; do bin/rspec; [[ ! $? = 0 ]] && break ; done
+  else
+    echo "Running Targeted Specs"
+    for i in {1..10}; do bin/rspec $1; [[ ! $? = 0 ]] && break ; done
+  fi
+}
