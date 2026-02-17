@@ -32,7 +32,7 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-dracula)
+;; (setq doom-theme 'strake-zenburn)
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -112,12 +112,6 @@
   )
 
 (use-package! lsp-mode
-  ;; activate rvm version before lsp
-  :hook (ruby-mode . (lambda ()
-                       (unless (and(boundp 'rvm--current-ruby) rvm--current-ruby)
-                         (message "Activating rvm version")
-                         (rvm-activate-corresponding-ruby)
-                         )))
   :config
   (advice-add 'lsp--before-save :around #'lsp--eslint-before-save)
   :custom
@@ -125,7 +119,6 @@
   )
 
 
-(setq-hook! 'emacs-lisp-mode lisp-indent-offset 2)
 
 (defun lsp--eslint-before-save (orig-fun)
   "Run lsp-eslint-apply-all-fixes and then run the original lsp--before-save."
