@@ -1,14 +1,19 @@
 # Load this file after .zshrc: `if [ -f ~/.zshrc.personal.after ]; then . ~/.zshrc.personal.after; fi`
-export PATH="$HOME/.config/emacs/bin:$PATH"
-
+export PATH="$HOME/.config/emacs/bin:/Applications/Docker.app/Contents/Resources/bin:$PATH" 
 ZSH_THEME="amuse" 
 
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/.git --work-tree=$HOME'
 alias y='yarn'
 
+
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
 
+# Load zsh_secrets if present
+[ -f "$HOME/.zsh_secrets" ] && source "$HOME/.zsh_secrets"
+
+# Load rvm scripts
+# [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
 
 # Usage:
 #   - To run all specs 10 times
