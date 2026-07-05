@@ -52,13 +52,16 @@
 (package! copilot
   :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el" "dist")))
 
-(package! claude-code-ide
-  :recipe (:host github :repo "manzaltu/claude-code-ide.el" :branch "main" :depth 1
-           :files ("*.el" (:exclude "images/*"))))
-
 (package! modus-themes
   :recipe (:host github :repo "protesilaos/modus-themes" :files ("*.el")))
 
 (package! treesit-auto
   :recipe (:host github :repo "renzmann/treesit-auto"
            :files ("*.el" "dist")))
+
+(package! alert)
+(package! shell-maker)
+(package! acp)
+(package! agent-shell)
+
+(package! eca :recipe (:host github :repo "editor-code-assistant/eca-emacs" :files ("*.el")))
