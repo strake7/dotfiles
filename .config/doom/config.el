@@ -21,7 +21,7 @@
 (setq-default indent-tabs-mode nil)
 
 (after! uniquify
-  (setq uniquify-buffer-name-style 'post-forward-angle-brackets))
+  (setq uniquify-buffer-name-style 'forward))
 
 ;;; Keybindings
 
@@ -38,7 +38,6 @@
 (use-package! consult
   :bind
   (:map minibuffer-local-map
-        ("C-s" . consult-history)
         ("C-r" . consult-history)))
 
 ;;; Project workspaces
@@ -112,7 +111,39 @@ the project directly in a workspace named after it."
         '("~/src/org/todo.org"))
   (setq org-todo-keywords
         '((sequence "TODO" "STRT" "WAIT" "|" "DONE" "KILL")))
-  (setq org-log-done 'time))
+  (setq org-log-done 'time)
+
+  ;; --- inline image support ---
+  (setq org-startup-with-inline-images t)   ; show images when opening a file
+  (setq org-image-actual-width '(600))      ; cap width at 600px, respect #+ATTR
+  (setq org-display-remote-inline-images 'download)) ; render http(s) images too
+
+;; --- paste / drag-drop images into org (org-download) ---
+(use-package! org-download
+  :after org
+  :config
+  (setq org-download-method 'directory
+        org-download-image-dir "./images"      ; store next to the .org file
+        org-download-heading-lvl nil           ; don't nest by heading
+        org-download-screenshot-method "pngpaste %s")
+  (map! :map org-mode-map
+        :localleader
+        :desc "Paste image from clipboard" "P" #'org-download-clipboard))
+
+;; --- paste clipboard image into agent-shell as an @mention ---
+(after! agent-shell
+  (defun strake/agent-shell-paste-image ()
+    "Save clipboard image to a temp file and insert an @mention for it."
+    (interactive)
+    (let ((file (expand-file-name
+                 (format "agent-shell-%s.png" (format-time-string "%Y%m%d-%H%M%S"))
+                 (temporary-file-directory))))
+      (if (zerop (call-process "pngpaste" nil nil nil file))
+          (insert (format "@\"%s\" " file))
+        (user-error "No image in clipboard (pngpaste failed)"))))
+  (map! :map agent-shell-mode-map
+        :localleader
+        :desc "Paste image from clipboard" "p" #'strake/agent-shell-paste-image))
 
 (use-package! treesit-auto
   :custom
@@ -124,13 +155,6 @@ the project directly in a workspace named after it."
 (setq treesit-font-lock-level 4)
 
 ;;; AI tooling
-
-;; (after! gptel
-;;   (setq gptel-backend
-;;         (gptel-make-anthropic "Claude"
-;;           :stream t
-;;           :key (getenv "ANTHROPIC_API_KEY")))
-;;   (setq gptel-model 'claude-sonnet-4-5-20250514))
 
 (use-package! alert
   :config
