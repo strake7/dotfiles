@@ -4,5 +4,3 @@ if defined?(PryByebug)
   Pry.commands.alias_command 's', 'step'
   Pry.commands.alias_command 'f', 'finish'
 end
-
-source "$HOME/src/im-dotfiles/.pryrc"
