@@ -28,16 +28,6 @@ Make sure `~/.zshrc` sources that file so the alias exists:
 if [ -f ~/.zshrc.personal.after ]; then . ~/.zshrc.personal.after; fi
 ```
 
-## Day-to-day use
-
-```bash
-config status                 # untracked files are hidden (status.showUntrackedFiles=no)
-config add ~/.zshrc.personal.after
-config commit -m "tweak zsh config"
-config push
-config pull                   # pull changes on another machine
-```
-
 ## Manual setup (equivalent to bootstrap.sh)
 
 ```bash
