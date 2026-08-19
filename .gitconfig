@@ -1,0 +1,17 @@
+; Shared git config, tracked in the dotfiles repo (~/.cfg).
+; Machine- and identity-specific settings live in ~/.gitconfig.local (untracked).
+[include]
+	path = ~/.gitconfig.local
+
+[url "https://github.com/"]
+	insteadOf = git@github.com:
+
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	line-numbers = true
+[merge]
+	conflictStyle = zdiff3
