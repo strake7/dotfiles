@@ -56,11 +56,10 @@ determine the exact padding."
                  (base7      '("#d5c4a1" "#cccccc" "brightblack")) ; fg2
                  (base8      '("#fbf1c7" "#fbfbfb" "brightwhite")) ; fg0
                  ;; (fg         '("#e6d6ac" "#e6d6ac" "brightwhite")) ; fg/fg1
-                 ;; (fg         '("#ece0c0" "#e6d6ac" "brightwhite")) ; fg/fg1
                  ;; (fg-alt     '("#d8caac" "#d8caac" "brightwhite")) ; fg2
                  (fg         '("#DCDCDC" "#bfbfbf" "brightwhite"  )) ;; zenburn-fg
                  (fg-alt     '("#989890" "#2d2d2d" "white"        )) ;; zenburn-fg-05
-                 ;; (fg         '("#bbc2cf" "#bfbfbf"     "brightwhite"  )) ;; doom-on-fg
+                 ;; (fg        ("#bbc2cf" "#bfbfbf"     "brightwhite"  )) ;; doom-on-fg
                  ;; (fg-alt     '("#5B6268" "#2d2d2d"     "white"        )) ;; doom-fg-alt
                  ;; (fg         '("#aeafad" "#bbc2cf"     "brightwhite"  )) ;; vscode-fg
                  ;; (fg-alt     '("#d4d4d4" "#5B6268"     "white"        )) ;; vscode-alt
@@ -78,11 +77,11 @@ determine the exact padding."
                  (yellow     '("#F0DFAF" "#ECBE7B" "yellow"       )) ;; zenburn-yellow
                  ;; (yellow     '("#dcdcaa" "#dcdcaa" "yellow"))        ; vscode yellow
                  (orange     '("#DFAF8F" "#dd8844" "brightred"    )) ;; zenburn-orange
-                 ;; (teal       '("#87af87" "#87af87" "green"))         ; bright-aqua
-                 (teal       '("#4db5bd" "#44b9b1" "brightgreen"  )) ;; zenburn-??
+                 (teal       '("#87af87" "#87af87" "green"))         ; bright-aqua
+                 ;; (teal       '("#4db5bd" "#44b9b1" "brightgreen"  )) ;; zenburn-??
                  ;; (light-teal (doom-lighten teal 0.1))
-                 ;; (green      '("#87af87" "#87af87" "green"))         ; bright-green
-                 (green      '("#98be65" "#99bb66" "green"        )) ; doom green
+                 (green      '("#87af87" "#87af87" "green"))         ; bright-green
+                 ;; (green      '("#98be65" "#99bb66" "green"        )) ; doom green
                  (dark-green '("#678f67" "#678f67" "green"))         ; green
                  (blue       '("#89beba" "#89beba" "brightblue"))    ; bright-blue
                  ;; (blue       '("#8CD0D3" "#51afef" "brightblue"   )) ;; zenburn-blue
@@ -107,14 +106,14 @@ determine the exact padding."
                  (builtin        violet)
                  (comments       (if strake-plaskett-brighter-comments magenta grey))
                  (doc-comments   (if strake-plaskett-brighter-comments (doom-lighten magenta 0.2) (doom-lighten fg-alt 0.25)))
-                 (constants      cyan)
+                 (constants      blue)
                  (functions      magenta)
                  (keywords       violet)
                  (methods        magenta)
-                 (operators      yellow)
-                 (type           dark-cyan)
+                 (operators      blue)
+                 (type           orange)
                  (strings        green)
-                 (variables      yellow)
+                 (variables      cyan)
                  (numbers        red)
                  (region         bg-alt2)
                  (error          red)
@@ -138,7 +137,7 @@ determine the exact padding."
   ;;;; Base theme face overrides
                 ((button :foreground blue :underline t :bold t)
                  (cursor :background "white")
-                 (font-lock-variable-name-face :foreground yellow :italic nil :weight 'normal)
+                 (font-lock-variable-name-face :foreground cyan :italic nil :weight 'normal)
                  (hl-line :background bg-alt)
                  (isearch :foreground base0 :background orange)
                  (lazy-highlight
