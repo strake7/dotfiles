@@ -1,0 +1,23 @@
+# portable zsh config, synced via the dotfiles repo.
+# Self-contained: the only hard dependency is oh-my-zsh being installed.
+
+# Load oh-my-zsh only if a main .zshrc hasn't already done so. oh-my-zsh sets
+# ZSH_CACHE_DIR during startup, so an empty value means it hasn't run yet.
+#   - Bare rig (Plan B): this block bootstraps oh-my-zsh itself.
+#   - Ansible-managed rig: ansible already loaded it, so this is skipped and its
+#     load (theme/plugins) is reused — avoids a wasteful double source.
+if [[ -z "$ZSH_CACHE_DIR" ]]; then
+  export ZSH="$HOME/.oh-my-zsh"
+  ZSH_THEME="amuse"
+  plugins=(git brew history kubectl history-substring-search)
+  source "$ZSH/oh-my-zsh.sh"
+fi
+
+# Case-insensitive + substring tab completion.
+zstyle ':completion:*' matcher-list \
+  'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' \
+  'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*'
+
+alias config='/usr/bin/git --git-dir=$HOME/.cfg/.git --work-tree=$HOME'
+alias y='yarn'
+alias b='bundle'
