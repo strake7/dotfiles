@@ -94,6 +94,13 @@ the project directly in a workspace named after it."
   (map! :map vterm-mode-map
         "C-c ESC" #'vterm-send-escape))
 
+;;; Eshell
+
+(set-eshell-alias!
+  "config" "git --git-dir=$HOME/.cfg/.git --work-tree=$HOME $*"
+  "y"      "yarn $*"
+  "b"      "bundle $*")
+
 ;;; Languages
 
 (defvar-local use-project-ruby-lsp nil
@@ -145,16 +152,45 @@ the project directly in a workspace named after it."
         :localleader
         :desc "Paste image from clipboard" "p" #'strake/agent-shell-paste-image))
 
-;; maybe? (setq treesit-font-lock-level 4)
-
 ;;; AI tooling
 
 (use-package! alert
   :config
   (setq alert-default-style 'osx-notifier))
 
+(defvar-local strake/agent-shell-workspace nil
+  "Workspace in which this agent shell was created.")
+
+(defun strake/agent-shell-switch ()
+  "Switch to a live agent shell in its native workspace."
+  (interactive)
+  (let* ((buffer (agent-shell--read-shell-buffer :prompt "Switch to shell: "))
+         (native-workspace
+          (buffer-local-value 'strake/agent-shell-workspace buffer))
+         (project-name
+          (with-current-buffer buffer
+            (when (fboundp 'projectile-project-name)
+              (projectile-project-name (agent-shell-cwd)))))
+         (workspace
+          (or (and native-workspace
+                   (+workspace-get native-workspace t))
+              (and project-name (+workspace-get project-name t))
+              (seq-find (lambda (candidate)
+                          (+workspace-contains-buffer-p buffer candidate))
+                        (+workspace-list)))))
+    (when workspace
+      (+workspace-switch (safe-persp-name workspace)))
+    (agent-shell--display-buffer buffer)))
+
 (use-package! agent-shell
   :config
+  ;; Keep the new-shell picker, with Claude Code first and preselected.
+  (setq agent-shell-preferred-agent-config '(preselect . claude-code)
+        ;; Offer saved sessions when a project has no live shell.
+        agent-shell-session-strategy 'prompt
+        agent-shell-session-restore-verbosity 'full)
+  ;; Built-in macOS sound; replace this path with a song when ready.
+  (setq strake/agent-shell-completion-sound "/System/Library/Sounds/Hero.aiff")
   (setq agent-shell-display-action
         '((display-buffer-in-direction) (direction . right)))
   (setq agent-shell-anthropic-claude-environment
@@ -163,21 +199,29 @@ the project directly in a workspace named after it."
         (agent-shell-anthropic-make-authentication :login t))
   (add-hook 'agent-shell-mode-hook
             (lambda ()
+              (setq-local strake/agent-shell-workspace
+                          (when (bound-and-true-p persp-mode)
+                            (+workspace-current-name)))
               (agent-shell-subscribe-to
                :shell-buffer (current-buffer)
                :event 'turn-complete
                :on-event
                (lambda (event)
-                 (unless (get-buffer-window (map-nested-elt event '(:data :buffer)))
-                   (alert "Agent finished working"
-                          :title "Agent Shell"
-                          :category 'agent-shell)))))))
+                 (let ((buffer (map-nested-elt event '(:data :buffer))))
+                   (unless (get-buffer-window buffer)
+                     (when (file-readable-p strake/agent-shell-completion-sound)
+                       (start-process "agent-shell-completion-sound" nil
+                                      "afplay" strake/agent-shell-completion-sound))
+                     (alert (format "%s finished" (buffer-name buffer))
+                            :title "Agent Shell"
+                            :category 'agent-shell))))))))
 
 (map! :leader
       (:prefix-map ("a" . "AI")
        :desc "ECA Menu" "a" #'eca-transient-menu
        :desc "GPTel menu" "g" #'gptel-menu
-       :desc "Toggle Agent Shell" "s" #'agent-shell
-       :desc "New Agent Shell" "S" #'agent-shell-new-shell
+       :desc "Open Project Shell" "s" #'agent-shell
+       :desc "New Project Shell" "S" #'agent-shell-new-shell
+       :desc "Switch Live Shell" "b" #'strake/agent-shell-switch
        :desc "Restart Agent Shell" "r" (cmd! (let ((agent-shell-display-action '((display-buffer-same-window))))
                                                (agent-shell-restart)))))
