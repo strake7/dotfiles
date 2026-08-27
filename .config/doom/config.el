@@ -145,14 +145,7 @@ the project directly in a workspace named after it."
         :localleader
         :desc "Paste image from clipboard" "p" #'strake/agent-shell-paste-image))
 
-(use-package! treesit-auto
-  :custom
-  (treesit-auto-install t)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
-
-(setq treesit-font-lock-level 4)
+;; maybe? (setq treesit-font-lock-level 4)
 
 ;;; AI tooling
 

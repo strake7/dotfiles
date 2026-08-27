@@ -55,10 +55,6 @@
 (package! modus-themes
   :recipe (:host github :repo "protesilaos/modus-themes" :files ("*.el")))
 
-(package! treesit-auto
-  :recipe (:host github :repo "renzmann/treesit-auto"
-           :files ("*.el" "dist")))
-
 (package! alert)
 (package! shell-maker)
 (package! acp)

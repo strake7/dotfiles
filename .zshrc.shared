@@ -21,3 +21,7 @@ zstyle ':completion:*' matcher-list \
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/.git --work-tree=$HOME'
 alias y='yarn'
 alias b='bundle'
+
+alias e="emacsclient -t"
+alias ec="emacsclient -c -n"
+alias erestart="launchctl kickstart -k gui/$(id -u)/org.gnu.emacs.daemon"
