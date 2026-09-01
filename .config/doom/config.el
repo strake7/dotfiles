@@ -7,8 +7,8 @@
 
 ;;; Appearance
 
-(setq doom-font (font-spec :family "JetBrains Mono" :size 13))
-(setq doom-variable-pitch-font (font-spec :family "JetBrains Mono" :size 13))
+(setq doom-font (font-spec :family "JetBrains Mono" :size 14))
+(setq doom-variable-pitch-font (font-spec :family "JetBrains Mono" :size 14))
 (setq doom-theme 'doom-dracula)
 (setq display-line-numbers-type t)
 
@@ -23,7 +23,7 @@
 (after! uniquify
   (setq uniquify-buffer-name-style 'forward))
 
-;;; Keybindings
+;;; EEEEVVIIIIL 
 
 (map! "C-SPC" #'er/expand-region)
 (map! "C-l" #'evil-window-right)
@@ -35,6 +35,8 @@
       :m "j" #'evil-next-visual-line
       :m "k" #'evil-previous-visual-line)
 
+;;; Minibuffer
+ 
 (use-package! consult
   :bind
   (:map minibuffer-local-map
@@ -42,7 +44,25 @@
 
 ;;; Project workspaces
 
-(defun strake/project-worktree-workspace ()
+(defun strake/--ensure-worktree (project wt-name wt-path)
+  "Create git worktree WT-NAME at WT-PATH, checked out from the repo at PROJECT.
+Checks out the existing branch WT-NAME if there is one, otherwise creates it.
+No-op if the WT-PATH already exists."
+  (unless (file-directory-p wt-path)
+    (let* ((default-directory project)
+           (branch-exists
+            (zerop (call-process "git" nil nil nil "rev-parse" "--verify"
+                                 (concat "refs/heads/" wt-name))))
+           (args (if branch-exists
+                     (list wt-path wt-name)
+                   (list "-b" wt-name wt-path)))
+           (exit (apply #'call-process "git" nil "*git-worktree*" nil
+                        "worktree" "add" args)))
+      (unless (zerop exit)
+        (pop-to-buffer "*git-worktree*")
+        (user-error "git worktree add failed")))))
+
+(defun strake/new-workspace-with-worktree ()
   "Open a project in a new workspace, optionally in a fresh git worktree.
 
 Prompts for a known project. If it's a git repo, prompts for a
@@ -58,37 +78,28 @@ the project directly in a workspace named after it."
          (project-name (projectile-project-name project))
          (git-p (locate-dominating-file project ".git"))
          (wt-name (when git-p
-                    (string-trim (read-string "Worktree name (empty to skip): ")))))
-    (if (and wt-name (not (string-empty-p wt-name)))
-        (let* ((ws-name (format "%s-%s" project-name wt-name))
-               (wt-path (expand-file-name
-                         ws-name
-                         (file-name-directory (directory-file-name project)))))
-          (unless (file-directory-p wt-path)
-            (let* ((default-directory project)
-                   (branch-exists
-                    (zerop (call-process "git" nil nil nil "rev-parse" "--verify"
-                                         (concat "refs/heads/" wt-name))))
-                   (exit (if branch-exists
-                             (call-process "git" nil "*git-worktree*" nil
-                                           "worktree" "add" wt-path wt-name)
-                           (call-process "git" nil "*git-worktree*" nil
-                                         "worktree" "add" "-b" wt-name wt-path))))
-              (unless (zerop exit)
-                (pop-to-buffer "*git-worktree*")
-                (user-error "git worktree add failed"))))
-          (+workspace-switch ws-name t)
-          (projectile-add-known-project wt-path)
-          (projectile-switch-project-by-name wt-path))
-      (progn
-        (+workspace-switch project-name t)
-        (projectile-switch-project-by-name project)))))
+                    (string-trim (read-string "Worktree name (empty to skip): "))))
+         (worktree-p (and wt-name (not (string-empty-p wt-name))))
+         (ws-name (if worktree-p
+                      (format "%s-%s" project-name wt-name)
+                    project-name))
+         (path (if worktree-p
+                   (expand-file-name
+                    ws-name
+                    (file-name-directory (directory-file-name project)))
+                 project)))
+    (when worktree-p
+      (strake/--ensure-worktree project wt-name path)
+      (projectile-add-known-project path))
+    (+workspace-switch ws-name t)
+    (projectile-switch-project-by-name path)))
 
 (map! :leader
-      :desc "Project in new workspace" "p W" #'strake/project-worktree-workspace
-      :desc "Project in new workspace" "TAB w" #'strake/project-worktree-workspace)
+      :desc "Project in new workspace" "p W" #'strake/new-workspace-with-worktree
+      :desc "Project in new workspace" "TAB w" #'strake/new-workspace-with-worktree)
 
-;;; Terminal
+
+;;; Vterm 
 
 (after! vterm
   (map! :map vterm-mode-map
@@ -107,6 +118,8 @@ the project directly in a workspace named after it."
   "If non-nil, eglot will use bundle exec ruby-lsp for this project.")
 (defvar-local use-project-solargraph nil
   "If non-nil, eglot will use bundle exec solargraph for this project.")
+
+;;; Org
 
 (after! org
   (org-babel-do-load-languages
@@ -137,7 +150,8 @@ the project directly in a workspace named after it."
         :localleader
         :desc "Paste image from clipboard" "P" #'org-download-clipboard))
 
-;; --- paste clipboard image into agent-shell as an @mention ---
+;;; AI
+ 
 (after! agent-shell
   (defun strake/agent-shell-paste-image ()
     "Save clipboard image to a temp file and insert an @mention for it."
@@ -154,9 +168,6 @@ the project directly in a workspace named after it."
 
 ;;; AI tooling
 
-(use-package! alert
-  :config
-  (setq alert-default-style 'osx-notifier))
 
 (defvar-local strake/agent-shell-workspace nil
   "Workspace in which this agent shell was created.")
@@ -186,10 +197,10 @@ the project directly in a workspace named after it."
   :config
   ;; Keep the new-shell picker, with Claude Code first and preselected.
   (setq agent-shell-preferred-agent-config '(preselect . claude-code)
+        agent-shell-anthropic-default-session-mode-id "auto"
         ;; Offer saved sessions when a project has no live shell.
         agent-shell-session-strategy 'prompt
         agent-shell-session-restore-verbosity 'full)
-  ;; Built-in macOS sound; replace this path with a song when ready.
   (setq strake/agent-shell-completion-sound "/System/Library/Sounds/Hero.aiff")
   (setq agent-shell-display-action
         '((display-buffer-in-direction) (direction . right)))
@@ -218,10 +229,14 @@ the project directly in a workspace named after it."
 
 (map! :leader
       (:prefix-map ("a" . "AI")
-       :desc "ECA Menu" "a" #'eca-transient-menu
-       :desc "GPTel menu" "g" #'gptel-menu
        :desc "Open Project Shell" "s" #'agent-shell
        :desc "New Project Shell" "S" #'agent-shell-new-shell
        :desc "Switch Live Shell" "b" #'strake/agent-shell-switch
        :desc "Restart Agent Shell" "r" (cmd! (let ((agent-shell-display-action '((display-buffer-same-window))))
                                                (agent-shell-restart)))))
+
+;;; Utility
+
+(use-package! alert
+  :config
+  (setq alert-default-style 'osx-notifier))
