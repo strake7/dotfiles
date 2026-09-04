@@ -1,4 +1,4 @@
-;;; strake-plaskett-theme.el --- A fresh take on miramare (a gruvbox variant), with some inspiration from zenburn and dracula palletes. -*- lexical-binding: t; -*-
+;;; strake-plaskett-light-theme.el --- light variant of strake-plaskett -*- lexical-binding: t; no-byte-compile: t; -*-
 ;;
 ;; Date: September 4, 2026
 ;; Author: strake7 <https://github.com/strake7>
@@ -14,92 +14,75 @@
 ;;
 ;;; Variables
 
-(defgroup strake-plaskett-theme nil
-  "Options for strake-plaskett."
+(defgroup strake-plaskett-light-theme nil
+  "Options for strake-plaskett-light."
   :group 'doom-themes)
 
-(defcustom strake-plaskett-brighter-comments nil
+(defcustom strake-plaskett-light-brighter-comments nil
   "If non-nil, comments will be highlighted in more vivid colors."
-  :group 'strake-plaskett-theme
+  :group 'strake-plaskett-light-theme
   :type 'boolean)
 
-(defcustom strake-plaskett-padded-modeline doom-themes-padded-modeline
+(defcustom strake-plaskett-light-padded-modeline doom-themes-padded-modeline
   "If non-nil, adds a 4px padding to the mode-line. Can be an integer to
 determine the exact padding."
-  :group 'strake-plaskett-theme
+  :group 'strake-plaskett-light-theme
   :type '(choice integer boolean))
 
 ;;
 ;;; Theme definition
 
-(def-doom-theme strake-plaskett
-                "A gruvbox variant with comfortable and pleasant colors."
+(def-doom-theme strake-plaskett-light
+                "A warm light variant of strake-plaskett."
+                :family 'strake-plaskett
+                :background-mode 'light
 
                 ;; name        gui       256       16
-                ((bg         '("#2a2426" "#2a2426" nil          )) ; bg1
-                 (bg-alt     '("#242021" "#242021" nil          )) ; bg1
-                 (bg-alt2    '("#504945" "#504945" "brown"      )) ; bg2 (for region, selection etc.)
+                ((bg         '("#fbf4e9" "#fbf4e9" nil          )) ; L* 96.5 -- the anchor
+                 (bg-alt     '("#f4ebdf" "#f4ebdf" nil          )) ; -3.0 L* (solaire / dimmed panes)
+                 (bg-alt2    '("#d1bea8" "#d1bea8" "white"      )) ; region/selection, 1.65:1 vs bg
+                 (hl-line-bg '("#f5e6d3" "#f5e6d3" nil          )) ; warm wash, 1.12:1; fg on it 8.79:1
 
-                 (base0      '("#0d1011" "black"   "black"      )) ; (self-defined)
-                 (base1      '("#1d2021" "#1d1d1d" "brightblack")) ; bg0_h
-                 (base2      '("#282828" "#282828" "brightblack")) ; bg0
-                 (base3      '("#3c3836" "#383838" "brightblack")) ; bg1
-                 (base4      '("#5b5b5b" "#5c5c5c" "brightblack")) ; bg3
-                 (base5      '("#7c6f64" "#6f6f6f" "brightblack")) ; bg4
-                 (base6      '("#928374" "#909090" "brightblack")) ; gray
-                 (base7      '("#d5c4a1" "#cccccc" "brightblack")) ; fg2
-                 (base8      '("#fbf1c7" "#fbfbfb" "brightwhite")) ; fg0
-                 ;; (fg         '("#e6d6ac" "#e6d6ac" "brightwhite")) ; fg/fg1
-                 ;; (fg-alt     '("#d8caac" "#d8caac" "brightwhite")) ; fg2
-                 (fg         '("#DCDCDC" "#bfbfbf" "brightwhite"  )) ;; zenburn-fg
-                 (fg-alt     '("#989890" "#2d2d2d" "white"        )) ;; zenburn-fg-05
-                 ;; (fg        ("#bbc2cf" "#bfbfbf"     "brightwhite"  )) ;; doom-on-fg
-                 ;; (fg-alt     '("#5B6268" "#2d2d2d"     "white"        )) ;; doom-fg-alt
-                 ;; (fg         '("#aeafad" "#bbc2cf"     "brightwhite"  )) ;; vscode-fg
-                 ;; (fg-alt     '("#d4d4d4" "#5B6268"     "white"        )) ;; vscode-alt
+                 ;; INVERTED vs the dark variant: base0 lightest -> base8 darkest.
+                 ;; bg (96.5) sits between base0 and base1. base1-base3 are inset
+                 ;; surfaces; base4 is the midtone; base5+ are foreground weights.
+                 ;; 256 column mirrors gui throughout.
+                 (base0      '("#fefcf8" "#fefcf8" "white"      )) ; L* 99.0  fg-on-accent
+                 (base1      '("#e8ded1" "#e8ded1" "white"      )) ; L* 89.0  1.22:1
+                 (base2      '("#e1d6c6" "#e1d6c6" "white"      )) ; L* 86.0  1.31:1  code-block bg
+                 (base3      '("#d7caba" "#d7caba" "white"      )) ; L* 82.0  1.47:1  raised surface
+                 (base4      '("#a39384" "#a39384" "brightblack")) ; L* 62.0  2.72:1
+                 (base5      '("#7f6f63" "#7f6f63" "brightblack")) ; L* 48.0  4.41:1  line numbers
+                 (base6      '("#6b5b52" "#6b5b52" "brightblack")) ; L* 40.0  5.93:1  comments
+                 (base7      '("#4d3f3b" "#4d3f3b" "black"      )) ; L* 28.0  9.20:1
+                 (base8      '("#342a29" "#342a29" "black"      )) ; L* 18.0 12.73:1
+                 (fg         '("#473b38" "#473b38" "black"      )) ; L* 26.0  9.85:1
+                 (fg-alt     '("#73665c" "#73665c" "brightblack")) ; L* 44.0  5.08:1  warm, hue 64
 
-                 (grey       '("#5b5b5b" "#5b5b5b" "brightblack"))   ; gray
-                 (red        '("#DFAF8F" "#dd8844" "brightred"))           ; bright-red
-                 ;; (magenta    '("#e68183" "#e68183" "magenta"))       ; red
-                 ;; (magenta    '("#DC8CC3" "#c678dd" "brightmagenta")) ;; zenburn-magenta
-                 (magenta    '("#d3a0bc" "#c678dd" "brightmagenta")) ;; miramare-bright-purple
-                 ;; (violet     '("#d3a0bc" "#d3a0bc" "brightmagenta")) ; miramare-bright-purple
-                 (violet     '("#a9a1e1" "#a9a1e1" "violet"      )) ;; zendurn-??
-                 (orange     '("#e39b7b" "#e39b7b" "orange"))        ; bright-orange
-                 ;; (orange     '("#DFAF8F" "#dd8844" "brightred"    )) ;; zenburn-orange
-                 ;; (yellow     '("#d9bb80" "#d9bb80" "yellow"))     ; bright-yellow
-                 (yellow     '("#F0DFAF" "#ECBE7B" "yellow"       )) ;; zenburn-yellow
-                 ;; (yellow     '("#dcdcaa" "#dcdcaa" "yellow"))        ; vscode yellow
-                 (orange     '("#DFAF8F" "#dd8844" "brightred"    )) ;; zenburn-orange
-                 (teal       '("#87af87" "#87af87" "green"))         ; bright-aqua
-                 ;; (teal       '("#4db5bd" "#44b9b1" "brightgreen"  )) ;; zenburn-??
-                 ;; (light-teal (doom-lighten teal 0.1))
-                 (green      '("#87af87" "#87af87" "green"))         ; bright-green
-                 ;; (green      '("#98be65" "#99bb66" "green"        )) ; doom green
-                 (dark-green '("#678f67" "#678f67" "green"))         ; green
-                 (blue       '("#89beba" "#89beba" "brightblue"))    ; bright-blue
-                 ;; (blue       '("#8CD0D3" "#51afef" "brightblue"   )) ;; zenburn-blue
-                 ;; (dark-blue  '("#458588" "#458588" "blue"))          ; blue
-                 ;; (dark-blue  '("#2257A0" "#2257A0" "blue"         )) ;; zenburn-??
-                 (dark-blue        '("#83a598" "#83a598" "brightblue"))    ; bright-blue
-                 ;; (dark-blue   '("#458588" "#458588" "blue"))          ; gruvbox-dark-blue
-                 ;; (cyan       '("#87c095" "#87c095" "brightcyan"))    ; bright-aqua
-                 ;; (cyan       '("#9cdcfe" "#9cdcfe" "brightcyan"   )) ;; vscode-blue
-                 ;; (cyan '("#93E0E3" "#46D9FF" "brightcyan"))          ;; zenburn-cyan
-                 (cyan '("#8CD0D3" "#51afef" "brightblue"   )) ;; zenburn-blue
-                 ;; (dark-cyan  '("#67a075" "#67a075" "cyan"))          ; aqua
-                 ;; (dark-cyan-vs  '("#4ec9b0" "#4ec9b0" "cyan"))          ; vscode
-                 ;; (dark-cyan  '("#4dc6ae" "#77ddcc" "cyan"))          ; vscode
-                 (dark-cyan  '("#00d8b4" "#77ddcc" "cyan"))          ; modus
-                 ;; #00d8b4
+                 ;; Semantic colors: L* 37-47, all >= 4.5:1 on bg, no gamut clipping.
+                 ;; Hues are carried over from the dark variant so the two read as
+                 ;; siblings; chroma is boosted to stay legible at low lightness.
+                 (grey       '("#baafa3" "#baafa3" "brightblack")) ; 1.97:1  window dividers
+                 (red        '("#b54642" "#b54642" "red"        )) ; 4.90:1  h 30
+                 (magenta    '("#9a5475" "#9a5475" "magenta"    )) ; 4.93:1  h 350
+                 (violet     '("#5b5d9f" "#5b5d9f" "brightmagenta")) ; 5.47:1  h 295
+                 (orange     '("#a35a2e" "#a35a2e" "brightred"  )) ; 4.73:1  h 55
+                 (yellow     '("#906919" "#906919" "yellow"     )) ; 4.55:1  h 80
+                 (teal       '("#32795f" "#32795f" "green"      )) ; 4.76:1  h 165
+                 (green      '("#54733e" "#54733e" "green"      )) ; 4.93:1  h 130
+                 (dark-green '("#425f32" "#425f32" "green"      )) ; 6.59:1  h 132
+                 (blue       '("#1e708b" "#1e708b" "blue"       )) ; 5.04:1  h 236
+                 (dark-blue  '("#3a6281" "#3a6281" "blue"       )) ; 5.92:1  h 258
+                 (cyan       '("#09797c" "#09797c" "cyan"       )) ; 4.76:1  h 200
+                 (dark-cyan  '("#117b6a" "#117b6a" "cyan"       )) ; 4.73:1  h 178
 
                  ;; face categories
                  (highlight      magenta)
                  (vertical-bar   grey)
                  (selection      bg-alt2)
                  (builtin        violet)
-                 (comments       (if strake-plaskett-brighter-comments magenta grey))
-                 (doc-comments   (if strake-plaskett-brighter-comments (doom-lighten magenta 0.2) (doom-lighten fg-alt 0.25)))
+                 (comments       (if strake-plaskett-light-brighter-comments magenta base6))
+                 (doc-comments   (if strake-plaskett-light-brighter-comments (doom-darken magenta 0.2) (doom-darken fg-alt 0.25))) ; [dir]
                  (constants      blue)
                  (functions      magenta)
                  (keywords       violet)
@@ -120,28 +103,28 @@ determine the exact padding."
 
                  ;; custom categories
                  (-modeline-pad
-                  (when strake-plaskett-padded-modeline
-                    (if (integerp strake-plaskett-padded-modeline)
-                        strake-plaskett-padded-modeline
+                  (when strake-plaskett-light-padded-modeline
+                    (if (integerp strake-plaskett-light-padded-modeline)
+                        strake-plaskett-light-padded-modeline
                       4)))
 
-                 (org-quote `(,(doom-lighten (car bg) 0.05) "#1f1f1f")))
+                 (org-quote `(,(doom-darken (car bg) 0.04) "#f0e8da"))) ; [dir]
 
 
   ;;;; Base theme face overrides
                 ((button :foreground blue :underline t :bold t)
-                 (cursor :background "white")
+                 (cursor :background fg)                ; [dir] was "white"
                  (font-lock-variable-name-face :foreground cyan :italic nil :weight 'normal)
-                 (hl-line :background bg-alt)
-                 (isearch :foreground base0 :background orange)
+                 (hl-line :background hl-line-bg)
+                 (isearch :foreground base0 :background orange)   ; base0 on orange 5.05:1
                  (lazy-highlight
                   :background yellow :foreground base0 :distant-foreground base0
-                  :weight 'bold)
+                  :weight 'bold)                                  ; base0 on yellow 4.86:1
                  ((line-number &override) :foreground base5)
                  ((line-number-current-line &override) :background bg-alt2 :foreground fg :bold t)
                  (minibuffer-prompt :foreground cyan)
                  (mode-line
-                  :background bg-alt2 :foreground (doom-lighten fg-alt 0.25)
+                  :background bg-alt2 :foreground (doom-darken fg-alt 0.25) ; [dir]
                   :box (if -modeline-pad `(:line-width ,-modeline-pad :color base3)))
                  (mode-line-inactive
                   :background bg :foreground base4
@@ -149,7 +132,7 @@ determine the exact padding."
 
                  ;; vimish-fold
                  ((vimish-fold-overlay &override) :inherit 'font-lock-comment-face :background bg-alt2 :weight 'light)
-                 ((vimish-fold-mouse-face &override) :foreground "white" :background yellow :weight 'light)
+                 ((vimish-fold-mouse-face &override) :foreground base0 :background yellow :weight 'light) ; [dir]
                  ((vimish-fold-fringe &override) :foreground magenta :background magenta)
    ;;;; company
                  (company-preview-common :foreground cyan)
@@ -169,7 +152,7 @@ determine the exact padding."
                  (dired-symlink :foreground cyan)
                  (dired-header :foreground cyan)
    ;;;; doom-emacs
-                 (+workspace-tab-selected-face :background dark-green :foreground "white")
+                 (+workspace-tab-selected-face :background dark-green :foreground base0) ; [dir]
    ;;;; doom-modeline
                  (doom-modeline-bar :background dark-green)
                  (doom-modeline-buffer-file :inherit 'bold :foreground fg)
@@ -178,21 +161,23 @@ determine the exact padding."
                  (doom-modeline-buffer-path :inherit 'bold :foreground green)
                  (doom-modeline-error :background bg)
                  (doom-modeline-info :bold t :foreground cyan)
-                 (doom-modeline-panel :background dark-green :foreground fg)
+                 (doom-modeline-panel :background dark-green :foreground base0) ; [dir] fg was invisible
                  (doom-modeline-project-dir :bold t :foreground cyan)
                  (doom-modeline-warning :foreground red :bold t)
    ;;;; doom-themes
                  (doom-themes-neotree-file-face :foreground fg)
-                 (doom-themes-neotree-hidden-file-face :foreground (doom-lighten fg-alt 0.25))
-                 (doom-themes-neotree-media-file-face :foreground (doom-lighten fg-alt 0.25))
+                 (doom-themes-neotree-hidden-file-face :foreground (doom-darken fg-alt 0.25)) ; [dir]
+                 (doom-themes-neotree-media-file-face :foreground (doom-darken fg-alt 0.25))  ; [dir]
    ;;;; ediff <built-in>
                  (ediff-fine-diff-A    :background (doom-blend red bg 0.4) :weight 'bold)
                  (ediff-current-diff-A :background (doom-blend red bg 0.2))
    ;;;; evil
-                 (evil-search-highlight-persist-highlight-face :background yellow)
+                 ;; yellow is a dark accent here, so it cannot be a raw background
+                 ;; under dark text -- blend it into bg instead. fg on it: 7.16:1
+                 (evil-search-highlight-persist-highlight-face :background (doom-blend yellow bg 0.25)) ; [dir]
                  (evil-ex-substitute-replacement :foreground cyan :inherit 'evil-ex-substitute-matches)
    ;;;; evil-snipe
-                 (evil-snipe-first-match-face :foreground "white" :background yellow)
+                 (evil-snipe-first-match-face :foreground base0 :background yellow) ; [dir]
                  (evil-snipe-matches-face     :foreground yellow :bold t :underline t)
    ;;;; flycheck
                  (flycheck-error   :underline `(:style wave :color ,red)    :background base3)
@@ -203,9 +188,9 @@ determine the exact padding."
    ;;;; highlight-quoted
                  (highlight-quoted-symbol :foreground dark-cyan)
    ;;;; highlight-symbol
-                 (highlight-symbol-face :background (doom-lighten base3 0.03) :distant-foreground fg-alt)
+                 (highlight-symbol-face :background (doom-darken base3 0.03) :distant-foreground fg-alt) ; [dir]
    ;;;; highlight-thing
-                 (highlight-thing :background (doom-lighten base3 0.03) :distant-foreground fg-alt)
+                 (highlight-thing :background (doom-darken base3 0.03) :distant-foreground fg-alt)       ; [dir]
    ;;;; ivy
                  (ivy-current-match :background bg-alt2)
                  (ivy-subdir :background nil :foreground cyan)
@@ -217,7 +202,8 @@ determine the exact padding."
                  (counsel-key-binding :foreground cyan)
    ;;;; ivy-posframe
                  (ivy-posframe :background bg-alt)
-                 (ivy-posframe-border :background base1)
+                 ;; base1 is only 1.22:1 on cream -- not a border. base4 is 2.72:1.
+                 (ivy-posframe-border :background base4) ; [dir] was base1
    ;;;; LaTeX-mode
                  (font-latex-math-face :foreground dark-cyan)
    ;;;; magit
@@ -225,14 +211,16 @@ determine the exact padding."
                  (magit-branch-current              :underline cyan :inherit 'magit-branch-local)
                  (magit-diff-hunk-heading           :background base3 :foreground fg-alt)
                  (magit-diff-hunk-heading-highlight :background bg-alt2 :foreground fg)
-                 (magit-diff-context                :foreground bg-alt :foreground fg-alt)
+                 ;; upstream had :foreground twice (bg-alt then fg-alt), so the first
+                 ;; was dead and the hunk never got its background. Fixed here.
+                 (magit-diff-context                :background bg-alt :foreground fg-alt)
    ;;;; markdown-mode
                  (markdown-blockquote-face :inherit 'italic :foreground cyan)
                  (markdown-list-face :foreground red)
                  (markdown-url-face :foreground red)
                  (markdown-pre-face  :foreground cyan)
                  (markdown-link-face :inherit 'bold :foreground cyan)
-                 ((markdown-code-face &override) :background (doom-lighten base2 0.045))
+                 ((markdown-code-face &override) :background (doom-darken base2 0.045)) ; [dir]
    ;;;; mu4e-view
                  (mu4e-header-key-face :foreground red)
    ;;;; neotree
@@ -251,13 +239,15 @@ determine the exact padding."
                  (org-todo :foreground yellow :bold 'inherit)
                  (org-list-dt :foreground yellow)
    ;;;; show-paren
-                 ((show-paren-match &override) :foreground nil :background base5 :bold t)
-                 ((show-paren-mismatch &override) :foreground nil :background "red")
+                 ;; base5 is a *foreground* weight here; using it as a background
+                 ;; under :foreground nil would hide the paren entirely.
+                 ((show-paren-match &override) :foreground nil :background bg-alt2 :bold t) ; [dir] was base5
+                 ((show-paren-mismatch &override) :foreground base0 :background red)        ; [dir]
    ;;;; which-func
                  (which-func :foreground cyan)
    ;;;; which-key
                  (which-key-command-description-face :foreground fg)
-                 (which-key-group-description-face :foreground (doom-lighten fg-alt 0.25))
+                 (which-key-group-description-face :foreground (doom-darken fg-alt 0.25)) ; [dir]
                  (which-key-local-map-description-face :foreground cyan)
    ;;;; undo-tree
                  (undo-tree-visualizer-active-branch-face :foreground cyan)
@@ -289,4 +279,4 @@ determine the exact padding."
                 ;; ()
                 )
 
-;;; strake-plaskett-theme.el ends here
+;;; strake-plaskett-light-theme.el ends here
