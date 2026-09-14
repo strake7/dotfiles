@@ -15,6 +15,11 @@
 (after! doom-themes
   (doom-themes-org-config))
 
+(defun strake/clear-fringe (&rest _)
+  (set-face-attribute 'fringe nil :background 'unspecified))
+(add-hook 'enable-theme-functions #'strake/clear-fringe)
+(strake/clear-fringe)   ; also apply now, for the no-theme case
+
 ;;; Editor defaults
 
 (setq-default tab-width 2)
@@ -151,26 +156,20 @@ the project directly in a workspace named after it."
         :desc "Paste image from clipboard" "P" #'org-download-clipboard))
 
 ;;; AI
- 
-(after! agent-shell
-  (defun strake/agent-shell-paste-image ()
-    "Save clipboard image to a temp file and insert an @mention for it."
-    (interactive)
-    (let ((file (expand-file-name
-                 (format "agent-shell-%s.png" (format-time-string "%Y%m%d-%H%M%S"))
-                 (temporary-file-directory))))
-      (if (zerop (call-process "pngpaste" nil nil nil file))
-          (insert (format "@\"%s\" " file))
-        (user-error "No image in clipboard (pngpaste failed)"))))
-  (map! :map agent-shell-mode-map
-        :localleader
-        :desc "Paste image from clipboard" "p" #'strake/agent-shell-paste-image))
 
-;;; AI tooling
-
+(defvar strake/agent-shell-completion-sound "/System/Library/Sounds/Hero.aiff"
+  "Sound played when an agent shell finishes a turn while off-screen.")
 
 (defvar-local strake/agent-shell-workspace nil
   "Workspace in which this agent shell was created.")
+
+(defun strake/agent-shell-cd (dir)
+  "Restart the current agent shell in DIR.
+`agent-shell-restart' inherits the shell buffer's `default-directory',
+so setting it here is enough to move the shell."
+  (interactive "DNew directory: ")
+  (setq default-directory (file-name-as-directory (expand-file-name dir)))
+  (agent-shell-restart))
 
 (defun strake/agent-shell-switch ()
   "Switch to a live agent shell in its native workspace."
@@ -201,7 +200,6 @@ the project directly in a workspace named after it."
         ;; Offer saved sessions when a project has no live shell.
         agent-shell-session-strategy 'prompt
         agent-shell-session-restore-verbosity 'full)
-  (setq strake/agent-shell-completion-sound "/System/Library/Sounds/Hero.aiff")
   (setq agent-shell-display-action
         '((display-buffer-in-direction) (direction . right)))
   (setq agent-shell-anthropic-claude-environment
@@ -227,11 +225,14 @@ the project directly in a workspace named after it."
                             :title "Agent Shell"
                             :category 'agent-shell))))))))
 
+;; Clipboard images are handled upstream by `agent-shell-yank-dwim', already
+;; bound to `<remap> <yank>' in `agent-shell-mode-map'.
 (map! :leader
       (:prefix-map ("a" . "AI")
        :desc "Open Project Shell" "s" #'agent-shell
        :desc "New Project Shell" "S" #'agent-shell-new-shell
        :desc "Switch Live Shell" "b" #'strake/agent-shell-switch
+       :desc "Change Shell Directory" "d" #'strake/agent-shell-cd
        :desc "Restart Agent Shell" "r" (cmd! (let ((agent-shell-display-action '((display-buffer-same-window))))
                                                (agent-shell-restart)))))
 
