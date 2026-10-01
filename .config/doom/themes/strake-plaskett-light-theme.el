@@ -38,7 +38,7 @@ determine the exact padding."
                 :background-mode 'light
 
                 ;; name        gui       256       16
-                ((bg         '("#fbf4e9" "#fbf4e9" nil          )) ; L* 96.5 -- the anchor
+                ((bg         '("#ffffff" "white"      "white"   )) ; 
                  (bg-alt     '("#f4ebdf" "#f4ebdf" nil          )) ; -3.0 L* (solaire / dimmed panes)
                  (bg-alt2    '("#d1bea8" "#d1bea8" "white"      )) ; region/selection, 1.65:1 vs bg
                  (hl-line-bg '("#f5e6d3" "#f5e6d3" nil          )) ; warm wash, 1.12:1; fg on it 8.79:1

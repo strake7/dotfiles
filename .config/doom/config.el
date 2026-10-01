@@ -51,16 +51,20 @@
 
 (defun strake/--ensure-worktree (project wt-name wt-path)
   "Create git worktree WT-NAME at WT-PATH, checked out from the repo at PROJECT.
-Checks out the existing branch WT-NAME if there is one, otherwise creates it.
-No-op if the WT-PATH already exists."
+Checks out the existing branch WT-NAME if there is one.  Otherwise, if
+origin/WT-NAME exists, creates WT-NAME tracking it; failing that, creates
+a fresh branch WT-NAME.  No-op if the WT-PATH already exists."
   (unless (file-directory-p wt-path)
     (let* ((default-directory project)
-           (branch-exists
-            (zerop (call-process "git" nil nil nil "rev-parse" "--verify"
-                                 (concat "refs/heads/" wt-name))))
-           (args (if branch-exists
-                     (list wt-path wt-name)
-                   (list "-b" wt-name wt-path)))
+           (ref-exists-p (lambda (ref)
+                           (zerop (call-process "git" nil nil nil "rev-parse"
+                                                "--verify" "--quiet" ref))))
+           (remote-ref (concat "origin/" wt-name))
+           (args (cond ((funcall ref-exists-p (concat "refs/heads/" wt-name))
+                        (list wt-path wt-name))
+                       ((funcall ref-exists-p (concat "refs/remotes/" remote-ref))
+                        (list "--track" "-b" wt-name wt-path remote-ref))
+                       (t (list "-b" wt-name wt-path))))
            (exit (apply #'call-process "git" nil "*git-worktree*" nil
                         "worktree" "add" args)))
       (unless (zerop exit)
@@ -103,6 +107,30 @@ the project directly in a workspace named after it."
       :desc "Project in new workspace" "p W" #'strake/new-workspace-with-worktree
       :desc "Project in new workspace" "TAB w" #'strake/new-workspace-with-worktree)
 
+;;; Comint
+
+;; Doom's `doom--if-compile' (behind `doom/reload', `doom/upgrade', ...) calls
+;; `local-set-key' in a comint-based compilation buffer, whose local map *is*
+;; `comint-mode-map'.  That permanently leaks `q' -> `quit-window' into every
+;; comint-derived mode.  Evil's normal state shadows it, but in insert state
+;; typing `q' quits the window, which makes composing a prompt in `agent-shell'
+;; (its keymap inherits `comint-mode-map' via `shell-maker-mode-map') impossible.
+;; Drop the global binding and hand it back to the compile buffer that wanted it.
+(defun strake/comint-unleak-q (&optional buffer &rest _)
+  "Remove the stray `q' -> `quit-window' binding from `comint-mode-map'.
+Rebind it locally in BUFFER so the compile buffer still quits on `q'."
+  (when (eq (keymap-lookup comint-mode-map "q") #'quit-window)
+    (keymap-unset comint-mode-map "q" t)
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (use-local-map (let ((map (make-sparse-keymap)))
+                         (set-keymap-parent map (current-local-map))
+                         (keymap-set map "q" #'quit-window)
+                         map))))))
+
+(after! comint
+  (strake/comint-unleak-q)
+  (add-hook 'compilation-finish-functions #'strake/comint-unleak-q))
 
 ;;; Vterm 
 
@@ -133,7 +161,8 @@ the project directly in a workspace named after it."
      (sql . t)))
   (setq org-directory "~/src/org/")
   (setq org-agenda-files
-        '("~/src/org/todo.org"))
+        '("~/src/org/todo.org"
+          "~/src/org/agent-inbox.org"))
   (setq org-todo-keywords
         '((sequence "TODO" "STRT" "WAIT" "|" "DONE" "KILL")))
   (setq org-log-done 'time)
@@ -217,7 +246,11 @@ so setting it here is enough to move the shell."
                :on-event
                (lambda (event)
                  (let ((buffer (map-nested-elt event '(:data :buffer))))
-                   (unless (get-buffer-window buffer)
+                   (unless (or (get-buffer-window buffer)
+                               ;; Scheduled runs are off-screen by design and
+                               ;; report through org, not notifications.
+                               (and (fboundp 'org-agent-scheduler-shell-buffer-p)
+                                    (org-agent-scheduler-shell-buffer-p buffer)))
                      (when (file-readable-p strake/agent-shell-completion-sound)
                        (start-process "agent-shell-completion-sound" nil
                                       "afplay" strake/agent-shell-completion-sound))
@@ -235,6 +268,75 @@ so setting it here is enough to move the shell."
        :desc "Change Shell Directory" "d" #'strake/agent-shell-cd
        :desc "Restart Agent Shell" "r" (cmd! (let ((agent-shell-display-action '((display-buffer-same-window))))
                                                (agent-shell-restart)))))
+
+;;; Scheduled agents
+
+;; Runs agent-shell sessions on a schedule and files their output as org
+;; agenda items.  Each run is handed a JSON output contract, so a task that
+;; produces nothing is a reported failure rather than a silent no-op.
+(load! "lisp/org-agent-scheduler")
+
+(after! org-agent-scheduler
+  ;; Leave `org-agent-scheduler-default-cwd' nil: the module resolves it to
+  ;; `org-directory' when a run starts, by which point (after! org ...) has run.
+  (setq org-agent-scheduler-default-org-file "agent-inbox.org"
+        ;; Nobody is watching to answer permission prompts mid-run.
+        org-agent-scheduler-default-session-mode "auto"
+        org-agent-scheduler-keep-shell-buffers 'on-error)
+
+  ;; Hourly Slack/GitHub triage, via the slack-monitor skill in ~/src/org.
+  ;; Skills are resolved from the session's working directory, so :cwd is what
+  ;; makes .claude/skills/slack-monitor visible to the agent.
+  ;;
+  ;; The skill's triage window is ~90 minutes against an hourly cadence, so
+  ;; consecutive runs deliberately overlap.  Each item carries its Slack
+  ;; permalink as :key, and the scheduler skips keys already filed -- that
+  ;; overlap is what stops something slipping through, and the key is what
+  ;; stops it arriving twice.
+  (setq org-agent-scheduler-tasks
+        '((:name "slack-triage"
+           :schedule (:every 3600)
+           :cwd "~/src/org"
+           :skill "slack-monitor"
+           :org-file "agent-inbox.org"
+           :org-headline "Slack triage"
+           :tags ("slack" "triage")
+           :timeout 900
+           :prompt "Run in TRIAGE mode: steps 1 and 2 only.  Do not run the \
+briefing steps and do not write a briefing file.
+
+This run is unattended -- there is no one in the chat to read a digest -- so \
+instead of printing the ranked list, emit one scheduler item per triage item:
+
+  heading    the item's headline, one line: who and what
+  priority   \"A\" for Needs you now, \"B\" for Should respond today, \"C\" for FYI
+  key        the item's Slack permalink.  Required: it is how a later run \
+recognises this item as already filed.
+  body       why it matters in one sentence, the permalink as an org link, \
+then the draft reply -- or \"Needs your call:\" and the specific open question \
+when you cannot draft one without information you do not have.
+  scheduled  today's date for Needs you now, otherwise leave empty
+  tags       add \"blocker\", \"morale\" or \"review\" where the skill's filter \
+matched for that reason
+
+Apply the skill's filter exactly as written: only things needing him.  If \
+nothing meets that bar, write {\"items\": []} -- do not manufacture items.
+
+Never post to Slack: no messages, thread replies, scheduled messages or \
+reactions.  Drafts only.")))
+
+  ;; A task is never run on first sighting -- the first tick only records its
+  ;; next-run -- so enabling here starts the cycle an hour out, not instantly.
+  (org-agent-scheduler-mode 1))
+
+(map! :leader
+      (:prefix-map ("a" . "AI")
+       (:prefix ("c" . "Scheduler")
+        :desc "Toggle scheduler"  "t" #'org-agent-scheduler-mode
+        :desc "Status"            "s" #'org-agent-scheduler-status
+        :desc "Run task now"      "r" #'org-agent-scheduler-run-now
+        :desc "Visit run buffer"  "b" #'org-agent-scheduler-visit-run-buffer
+        :desc "Cancel run"        "k" #'org-agent-scheduler-cancel)))
 
 ;;; Utility
 
